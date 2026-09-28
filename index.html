@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام التنبؤ الشهري بالطقس - جدة</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #f4f7f6; color: #333; padding: 20px; }
+        .header { background: linear-gradient(135deg, #1e5799 0%, #2989d8 50%, #207cca 100%); color: white; text-align: center; padding: 25px; border-radius: 10px; margin-bottom: 25px; }
+        .header h1 { font-size: 28px; margin-bottom: 5px; }
+        .header p { font-size: 14px; opacity: 0.9; }
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: white; padding: 20px; border-radius: 10px; text-align: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-top: 4px solid #2989d8; }
+        .metric-card h3 { font-size: 16px; color: #666; margin-bottom: 15px; }
+        .metric-value { font-size: 32px; font-weight: bold; color: #27ae60; margin-bottom: 10px; }
+        .metric-sub { font-size: 12px; color: #888; }
+        .main-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .main-container { grid-template-columns: 1fr; } }
+        .card { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .card h2 { font-size: 18px; margin-bottom: 20px; color: #333; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 14px; margin-bottom: 5px; color: #555; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 14px; }
+        .btn-submit { width: 100%; padding: 12px; background-color: #27ae60; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: 0.3s; }
+        .btn-submit:hover { background-color: #219150; }
+        .results-box { background: #f9f9f9; padding: 20px; border-radius: 5px; margin-top: 15px; }
+        .result-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #ddd; }
+        .result-item:last-child { border-bottom: none; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>نظام التنبؤ الشهري بالطقس لمدينة جدة</h1>
+        <p>مشروع تخرج لجامعة العلوم والتكنولوجيا - التنبؤ بالحرارة والرياح والضغط الجوي</p>
+    </div>
+
+    <!-- بطاقات نتائج الدقة R2 -->
+    <div class="metrics-grid">
+        <div class="metric-card" style="border-top-color: #27ae60;">
+            <h3>نسبة الدقة الكلية (Accuracy)</h3>
+            <div class="metric-value">%{{ metrics.overall_accuracy }}</div>
+            <div class="metric-sub">
+                التدريب: {{ metrics.train_samples }} | الاختبار: {{ metrics.test_samples }}
+            </div>
+        </div>
+
+        <div class="metric-card" style="border-top-color: #e74c3c;">
+            <h3>دقة تنبؤ الحرارة (R²)</h3>
+            <div class="metric-value" style="color: #e74c3c;">%{{ metrics.temp_accuracy }}</div>
+            <div class="metric-sub">Temperature Accuracy</div>
+        </div>
+
+        <div class="metric-card" style="border-top-color: #2989d8;">
+            <h3>دقة تنبؤ الرياح (R²)</h3>
+            <div class="metric-value" style="color: #2989d8;">%{{ metrics.wind_accuracy }}</div>
+            <div class="metric-sub">Wind Speed Accuracy</div>
+        </div>
+
+        <div class="metric-card" style="border-top-color: #8e44ad;">
+            <h3>دقة تنبؤ الضغط (R²)</h3>
+            <div class="metric-value" style="color: #8e44ad;">%{{ metrics.press_accuracy }}</div>
+            <div class="metric-sub">Pressure Accuracy</div>
+        </div>
+    </div>
+
+    <!-- نموذج التنبؤ الآلي -->
+    <div class="main-container">
+        <div class="card">
+            <h2>مدخلات التنبؤ للشهر القادم</h2>
+            <form id="predictForm">
+                <div class="form-group">
+                    <label>اختر السنة:</label>
+                    <input type="number" id="year" value="2026" min="2000" max="2030" required>
+                </div>
+
+                <div class="form-group">
+                    <label>اختر الشهر المراد التنبؤ به:</label>
+                    <select id="month" required>
+                        <option value="1">يناير (1)</option>
+                        <option value="2">فبراير (2)</option>
+                        <option value="3">مارس (3)</option>
+                        <option value="4">أبريل (4)</option>
+                        <option value="5">مايو (5)</option>
+                        <option value="6">يونيو (6)</option>
+                        <option value="7" selected>يوليو (7)</option>
+                        <option value="8">أغسطس (8)</option>
+                        <option value="9">سبتمبر (9)</option>
+                        <option value="10">أكتوبر (10)</option>
+                        <option value="11">نوفمبر (11)</option>
+                        <option value="12">ديسمبر (12)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-submit">تنفيذ التنبؤ</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>النتائج المتوقعة للشهر المحدد</h2>
+            <div class="results-box">
+                <div class="result-item">
+                    <span>درجة الحرارة المتوقعة:</span>
+                    <strong id="res_temp">-- °C</strong>
+                </div>
+                <div class="result-item">
+                    <span>سرعة الرياح المتوقعة:</span>
+                    <strong id="res_wind">-- km/h</strong>
+                </div>
+                <div class="result-item">
+                    <span>الضغط الجوي المتوقع:</span>
+                    <strong id="res_press">-- hPa</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- كود إرسال البيانات لسيرفر Python -->
+    <script>
+        document.getElementById('predictForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            // إرسال السنة والشهر فقط
+            const payload = {
+                year: document.getElementById('year').value,
+                month: document.getElementById('month').value
+            };
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('res_temp').innerText = data.predicted_temperature + ' °C';
+                    document.getElementById('res_wind').innerText = data.predicted_wind_speed + ' km/h';
+                    document.getElementById('res_press').innerText = data.predicted_pressure + ' hPa';
+                } else {
+                    alert('خطأ: ' + data.error);
+                }
+            } catch (error) {
+                alert('تأكد من تشغيل ملف البايثون وفتح الموقع عبر الرابط الصحيح.');
+            }
+        });
+    </script>
+</body>
+</html>
